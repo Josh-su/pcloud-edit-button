@@ -16,6 +16,3 @@ This extension hooks into pCloud's internal `docsrv/getdocumentcode` API to inje
 3. Enable **Developer mode** in the top right corner.
 4. Click **Load unpacked** (*Charger l'extension non empaquetée*) and select this folder.
 5. Open [my.pcloud.com](https://my.pcloud.com) and select any document!
-
-## License
-MIT
