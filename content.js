@@ -1,5 +1,10 @@
 // --- CONFIG & HELPERS ---
-const SUPPORTED_EXTENSIONS = ['.docx', '.xlsx', '.pptx', '.doc', '.xls', '.ppt', '.odt', '.ods', '.odp'];
+const SUPPORTED_EXTENSIONS = [
+  '.docx', '.xlsx', '.pptx', 
+  '.doc', '.xls', '.ppt', 
+  '.odt', '.ods', '.odp', 
+  '.txt', '.md', '.markdown', '.csv', '.rtf'
+];
 
 function isSupportedDoc(filename) {
   if (!filename) return false;
@@ -74,40 +79,50 @@ function configureItem(element, labelText) {
 function updateUI() {
   const fileInfo = getSelectedFileInfo();
 
+  // If no supported document selected, remove buttons
   if (!fileInfo || !isSupportedDoc(fileInfo.filename)) {
     document.querySelectorAll('#pdocs-top-btn, #pdocs-menu-item').forEach(el => el.remove());
     return;
   }
 
-  // 1. Top Action Bar Button
+  // Top Action Bar: Always place right after Aperçu (or Renommer)
   const allButtons = Array.from(document.querySelectorAll('button, div, span, a'));
   const topApercuBtn = allButtons.find(el => el.textContent.trim().startsWith('Aper') && !el.id.includes('pdocs') && el.offsetParent !== null && !el.closest('[role="menu"], ul, .szh-menu'));
   const topRenommerBtn = allButtons.find(el => el.textContent.trim().startsWith('Renomm') && !el.id.includes('pdocs') && el.offsetParent !== null && !el.closest('[role="menu"], ul, .szh-menu'));
   const topAnchor = topApercuBtn || topRenommerBtn;
 
-  if (topAnchor && !document.getElementById('pdocs-top-btn')) {
-    const editBtn = topAnchor.cloneNode(true);
-    editBtn.id = 'pdocs-top-btn';
-    configureItem(editBtn, 'Éditer');
+  if (topAnchor) {
+    let topBtn = document.getElementById('pdocs-top-btn');
+    if (!topBtn) {
+      topBtn = topAnchor.cloneNode(true);
+      topBtn.id = 'pdocs-top-btn';
+      configureItem(topBtn, 'Éditer');
 
-    editBtn.onclick = (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      const current = getSelectedFileInfo();
-      if (current?.fileId) openPDocs(current.fileId);
-    };
-
-    topAnchor.insertAdjacentElement('afterend', editBtn);
+      topBtn.onclick = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const current = getSelectedFileInfo();
+        if (current?.fileId) openPDocs(current.fileId);
+      };
+      topAnchor.insertAdjacentElement('afterend', topBtn);
+    } else if (topBtn.previousElementSibling !== topAnchor) {
+      // Keep strictly adjacent
+      topAnchor.insertAdjacentElement('afterend', topBtn);
+    }
   }
 
-  // 2. Dropdown / Context Menu
+  // Dropdown Menu: STRICT anchor to always be directly BELOW Aperçu
   const menuApercuItems = Array.from(document.querySelectorAll('li, [role="menuitem"], .szh-menu__item'))
     .filter(el => el.textContent.trim().startsWith('Aperçu') && !el.id.includes('pdocs') && el.offsetParent !== null);
 
   menuApercuItems.forEach(apercuItem => {
     const menuContainer = apercuItem.parentElement;
-    if (menuContainer && !menuContainer.querySelector('#pdocs-menu-item')) {
-      const editMenuItem = apercuItem.cloneNode(true);
+    if (!menuContainer) return;
+
+    let editMenuItem = menuContainer.querySelector('#pdocs-menu-item');
+
+    if (!editMenuItem) {
+      editMenuItem = apercuItem.cloneNode(true);
       editMenuItem.id = 'pdocs-menu-item';
       configureItem(editMenuItem, 'Éditer dans pDocs');
 
@@ -118,6 +133,10 @@ function updateUI() {
         if (current?.fileId) openPDocs(current.fileId);
       };
 
+      // Always insert directly after Aperçu
+      apercuItem.insertAdjacentElement('afterend', editMenuItem);
+    } else if (editMenuItem.previousElementSibling !== apercuItem) {
+      // If React reordered items, re-lock position right after Aperçu
       apercuItem.insertAdjacentElement('afterend', editMenuItem);
     }
   });
