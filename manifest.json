@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "pCloud pDocs Editor Button",
+  "version": "1.0.0",
+  "description": "Adds a missing 'Edit in pDocs' button to pCloud web for documents in shared paid folders.",
+  "permissions": ["activeTab"],
+  "host_permissions": [
+    "https://*.pcloud.com/*"
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://my.pcloud.com/*"],
+      "js": ["content.js"],
+      "world": "MAIN",
+      "run_at": "document_idle"
+    }
+  ]
+}
